@@ -9,6 +9,26 @@ Created on Mon Nov 28 15:50:50 2016
 import numpy as np
 import atmospheres as atmo
 
+def Cd_Calc(M,Kn,V,RT):
+    # Dependence of continuum Cd on Mach number
+    Mrange = np.array([0., 0.5, 1.0, 1.5, 2.5, 3.5, 5.0, 12., 100.])
+    Cdcontrange = np.array([0.45, 0.5, 0.78, 1.0, 0.75, 0.62, 0.6, 0.55, 0.55])
+    
+    s = V/(2*RT)**0.5
+    Cdfm = 1.75 + np.pi**0.5/(2*s)
+    if Kn < 14.5:
+        for i in range(0,9):
+            if M > Mrange[i] and M <= Mrange[i+1]:
+                Cdcont = Cdcontrange[i] + (Cdcontrange[i+1] - Cdcontrange[i])*(M - Mrange[i])/(Mrange[i+1] - Mrange[i])           
+        if Kn < 0.0146:
+            Cd = Cdcont
+        else:
+            Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
+    else:
+        Cd = Cdfm
+        
+    return Cd
+
 def traj(y, t, sc, earth):
     # Extract variables
     r, lat, lon, V, psi, gam = y
@@ -19,7 +39,15 @@ def traj(y, t, sc, earth):
     else:
         # Atmosphere calculation at new altitude
         rho, P, T, mfp, eta, MolW = atmo.US62_76(r)
-    
+        
+        # Find Cd 
+        Kn = mfp/A**0.5
+        R = 8314.32/MolW
+        RT = R*T
+        SoS = (1.4*RT)**0.5
+        Ma = V/SoS
+        Cd = Cd_Calc(Ma,Kn,V,RT)        
+        
         # Drag calculation
         D = 0.5*rho*V**2*A*Cd
         
