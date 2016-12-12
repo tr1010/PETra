@@ -6,7 +6,7 @@ Created on Thu Dec  1 11:37:27 2016
 
 @author: tr1010
 """
-import Trajectory2 as tr
+import Trajectory as tr
 
 M = 8.
 Kn = 0.001
