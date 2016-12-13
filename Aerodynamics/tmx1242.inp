@@ -1,0 +1,9 @@
+&hyp  title='Configuration WB 0-0 from NASA TM X-1242',
+  wgsFileName='tmx1242.wgs', 
+  cmethods=7,3,3,
+  emethods=5,5,5,
+  mach=4.63, sref=100, cbar=5.417,
+  alpha=0,4,8,12,16,
+  xref=24.725, span=20/
+
+

@@ -1,0 +1,8 @@
+&hyp wgsFileName='tnd6480.wgs', 
+  mach=4.63, sref=217.73, cbar=40,
+  cmethods=5,5,5,5,5,5,5,5,
+  emethods=5,5,5,5,5,5,5,5,
+  alpha=6.2,
+  xref=28, span=21.16/
+
+

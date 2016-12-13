@@ -1,0 +1,66 @@
+ --- Created by hyper, version 0.7 (31 Dec 2002)
+ --- Date: 15:06 31Dec2002
+ --- Uses module Methods, version 0.7 (21 Dec 2002)
+ --- Reading from file: tmx1242.inp
+ Configuration WB 0-0 from NASA TM X-1242
+ Mach= 4.630  Sref=    100.0000  Cbar=  5.4170  Span= 20.0000
+ Moment Reference,   x=     24.7250  y=      0.0000  z=  0.0000
+     6 networks with     576 panels
+ 
+ SOLUTIONS FOR COMPLETE VEHICLE IN BODY AXES
+  #  alpha   beta      cx        cy        cz       cmx       cmy       cmz
+  1   0.00   0.00   0.01496   0.00000   0.00000   0.00000   0.00000   0.00000
+  2   4.00   0.00   0.01542   0.00000   0.11030   0.00000   0.06624   0.00000
+  3   8.00   0.00   0.01676   0.00000   0.22869   0.00000   0.13388   0.00000
+  4  12.00   0.00   0.01887   0.00000   0.36189   0.00000   0.20419   0.00000
+  5  16.00   0.00   0.02163   0.00000   0.51477   0.00000   0.27827   0.00000
+ 
+ SOLUTIONS FOR COMPLETE VEHICLE IN WIND AXES
+  #  alpha   beta     clift    cdrag     cpitch
+  1   0.00   0.00   0.00000   0.01496   0.00000
+  2   4.00   0.00   0.10896   0.02308   0.06624
+  3   8.00   0.00   0.22413   0.04843   0.13388
+  4  12.00   0.00   0.35006   0.09370   0.20419
+  5  16.00   0.00   0.48886   0.16269   0.27827
+ 
+ COMPUTATIONAL METHODS AND AVERAGE NORMALS
+    C=compression method;   E=expansion method
+   #  C  E    nx     ny     nz
+   1  7  5 -0.021  0.639  0.000   BODY
+   2  3  5  0.000  0.020  0.991   WING-UPPER
+   3  3  5  0.000  0.020 -0.991   WING-LOWER
+   4  7  5 -0.021 -0.639  0.000   global image of BODY
+   5  3  5  0.000 -0.020  0.991   global image of WING-UPPER
+   6  3  5  0.000 -0.020 -0.991   global image of WING-LOWER
+ 
+ COMPRESSION METHODS
+    1  Modified Newtonian
+    2  Newtonian-Prandtl-Meyer
+    3  Tangent Wedge
+    4  Tangent Wedge Infinite Mach
+    5  Old Tangent Cone
+    6  Cone At Angle Of Attack (later)
+    7  VanDyke Unified
+    8  Blunt Body Viscous (later)
+    9  Shock Expansion (later)
+   10  Free Molecular Flow (later)
+   11  Input value of CpStag
+   12  Hankey Flat Surface
+   13  Smyth Delta Wing
+   14  Modified Dahlem-Buck
+   15  BlastWave (later)
+   16  OSUBluntBody
+ 
+ EXPANSION METHODS
+    1  Cp=0
+    2  NewtonianPrandtlMeyer
+    3  PrandtlMeyer
+    4  ConeAtAngleOfAttack(later)
+    5  VanDykeUnified
+    6  Vacuum
+    7  Shock Expansion (later)
+    8  Input Value
+    9  Free Molecular Flow(later)
+   10  Modified Dahlem-Buck
+   11  ACMempirical(later)
+   12  half Prandtl-Meyer from freestream
