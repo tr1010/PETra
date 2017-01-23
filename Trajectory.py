@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Trajectory model based on Equations of Motion in Chung & Lee
+Trajectory model based on Equations of Motion in Chung & Lee (?)
 Created on Mon Nov 28 15:50:50 2016
 
 @author: tr1010

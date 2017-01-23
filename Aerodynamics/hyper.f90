@@ -57,7 +57,8 @@ CONTAINS
 FUNCTION BuildRotationMatrix(r) RESULT(rot)
 ! ---------------------------------------------------------------------------
 ! PURPOSE - Form the rotation matrix used for geometrical transformations
-!  Taken from NASA TM 85767 defining LaWGS
+!  Taken from NASA TM 85767 defining LaWGS (Langley Wireframe Geometry 
+!  Standard)
 
   REAL,INTENT(IN),DIMENSION(:):: r   ! rotation angles, degrees
   REAL,DIMENSION(3,3):: rot
@@ -109,7 +110,7 @@ SUBROUTINE ConvertNetwork(a, r, t, s)
 
   DO j=1,a%cols
     DO i=1,a%rows
-      before(1)=a%x(i,j)
+      before(1)=a%x(i,j) ! % sign is for structures. Same as . in C etc
       before(2)=a%y(i,j)
       before(3)=a%z(i,j)
       after=MATMUL(rot,before)
