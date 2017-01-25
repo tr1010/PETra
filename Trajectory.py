@@ -10,36 +10,11 @@ Geocentric frame of reference i.e. not actually lat/long but declination and
 right ascenscion. Maybe I should write something which changes between
 different frames of reference
 
-
 """
+
 import numpy as np
 import atmospheres as atmo
-
-def Aero_Calc(Ma,Kn,V,RT, q1, q2, q3, q4, P, Q, R):
-    # Dependence of continuum Cd on Mach number
-    Mrange = np.array([0., 0.5, 1.0, 1.5, 2.5, 3.5, 5.0, 12., 100.])
-    Cdcontrange = np.array([0.45, 0.5, 0.78, 1.0, 0.75, 0.62, 0.6, 0.55, 0.55])
-    
-    s = V/(2*RT)**0.5
-    Cdfm = 1.75 + np.pi**0.5/(2*s)
-    if Kn < 14.5:
-        for i in range(0,9):
-            if Ma > Mrange[i] and Ma <= Mrange[i+1]:
-                Cdcont = Cdcontrange[i] + (Cdcontrange[i+1] - Cdcontrange[i])*(Ma - Mrange[i])/(Mrange[i+1] - Mrange[i])           
-        if Kn < 0.0146:
-            Cd = Cdcont
-        else:
-            Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
-    else:
-        Cd = Cdfm
-    
-    L = 0.
-    M = 0.
-    N = 0.
-    Ext = np.array([[L],
-                   [M],
-                   [N]])
-    return Cd, Ext
+import AeroSolvers as Aero
 
 def traj(y, t, sc, J, earth):
     # Extract variables
@@ -58,7 +33,7 @@ def traj(y, t, sc, J, earth):
         RT = R*T
         SoS = (1.4*RT)**0.5
         Ma = V/SoS
-        Cd, Ext = Aero_Calc(Ma,Kn,V,RT, q1, q2, q3, q4, wx, wy, wz)        
+        Cd, Ext = Aero.Aero_Calc(Ma,Kn,V,RT, q1, q2, q3, q4, wx, wy, wz)        
         
         # Drag calculation
         D = 0.5*rho*V**2*A*Cd
