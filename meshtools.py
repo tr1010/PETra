@@ -19,7 +19,7 @@ demise tool
 
 TO DO:
     - Find a way to distinguish between 'internal' and 'external' panels (in order to model things like e.g. solar panels)
-    - 
+    - Implement a coordinate system origin for each mesh (to track orientation of object)
 """
 import numpy as np
 
@@ -93,8 +93,3 @@ def Cube(L,CG_off):
     CoG = [L/2. + CG_off[0], L/2. + CG_off[1], L/2. + CG_off[2]]
     
     return verts, surfs, normals, CoG
-
-    
-#Test
-verts, surfs, normals, CoG = Cube(1,np.array([0.,0.,0.]))
-Centres = MeshCentres(verts,surfs)

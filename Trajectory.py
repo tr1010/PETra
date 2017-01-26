@@ -33,7 +33,7 @@ def traj(y, t, sc, J, earth):
         RT = R*T
         SoS = (1.4*RT)**0.5
         Ma = V/SoS
-        Cd, Ext = Aero.Aero_Calc(Ma,Kn,V,RT, q1, q2, q3, q4, wx, wy, wz)        
+        Cd, Ext = Aero.Aero_Calc(geom, Ma, Kn, V, RT, V, psi, gam, q1, q2, q3, q4, wx, wy, wz) # Ext is external torque around the body's centre of mass       
         
         # Drag calculation
         D = 0.5*rho*V**2*A*Cd

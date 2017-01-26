@@ -8,42 +8,75 @@ Created on Mon Jan 23 10:18:06 2017
 """
 import numpy as np
 import math
-
-def CoefficientCalculation(Cp, Areas, normals):
-    totpans = np.size(Cp,1)
-    forces = np.zeros((3,totpans))
     
-   # Calculate local force vector on each panel
-    for i in range(0,totpans):
-        forces[:,i] = -Cp[i]*Areas[i]*normals[:,i]
+def Aero_Calc(normals, Ma, Kn, RT, V, psi, gam, q1, q2, q3, q4, P, Q, R):
+    """ 
+    This function takes uses Newtonian impact theory and/or Schaaf & Chambre's 
+    Molecular Flow model to calculate the Pressure coefficient on each panel of 
+    the model geometry. It uses this pressure distributions to then calculate
+    Aerodynamic Forces and Moments which are returned to be used in the 
+    trajectory calculation
+    """
+    sgam = np.sin(gam)
+    cgam = np.cos(gam)
+    spsi = np.sin(psi)
+    cpsi = np.cos(psi)
     
-    # Calculate Lift and Drag coefficients -- for this will need orientation/rotation matrices of s/c
+    # Assemble rotation matrices?
+    Cw = np.array([[sgam, cgam*spsi, cgam*cpsi],
+                   [0, cpsi, -spsi],
+                   [-cgam, sgam*spsi, sgam*cpsi]])
     
-    # Calculate Moment Coefficients -- need force coefficients along with orientation/rotation, CoG
+    # In quaternion formulation?
+    quat = np.array([q1,q2,q3,q4])
     
-    return forces
+    S = np.array([[0., -q3, q2],
+                  [q3, 0., -q1],
+                  [-q2, q1, 0.]])
     
-def Aero_Calc(Ma,Kn,V,RT, q1, q2, q3, q4, P, Q, R):
-    # Dependence of continuum Cd on Mach number
-    Mrange = np.array([0., 0.5, 1.0, 1.5, 2.5, 3.5, 5.0, 12., 100.])
-    Cdcontrange = np.array([0.45, 0.5, 0.78, 1.0, 0.75, 0.62, 0.6, 0.55, 0.55])
+    temp = np.subtract(2*np.dot(quat,quat),np.multiply(2*q4,S))
     
-    s = V/(2*RT)**0.5
-    Cdfm = 1.75 + np.pi**0.5/(2*s)
+    C = np.add((q4**2 - np.dot(quat,quat))*np.eye(3),temp)
+    
+    # Convert Quaternion to Euler angles -- not necessary?
+#    Euler = np.array([np.arctan2(2*(q4*q1+q2*q3),1-2*(q1**2 + q2**2)),
+#                      np.arcsin(2*(q4*q2 - q3*q1)),
+#                      np.arctan2(2*(q4*q3 + q1*q2),1-2*(q2**2+q3**2))])
+    
+    # Find free stream velvec wrt to local horizon frame of reference
+    temp = np.multiply(np.linalg.inv(Cw),np.linalg.inv(C))
+    
+    Vinf = np.multiply(temp,np.array([V,0.,0.]))
+    
+                      
+    # Dependence on Knudsen number
     if Kn < 14.5:
-        for i in range(0,9):
-            if Ma > Mrange[i] and Ma <= Mrange[i+1]:
-                Cdcont = Cdcontrange[i] + (Cdcontrange[i+1] - Cdcontrange[i])*(Ma - Mrange[i])/(Mrange[i+1] - Mrange[i])           
         if Kn < 0.0146:
-            Cd = Cdcont
+            # Calculate continuum pressure distribution
+            Cp = NewtonSolver(normals,Vinf,Ma,0)
         else:
-            Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
+            # Calculate Transition pressure distribution
+            #Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
     else:
-        Cd = Cdfm
+        # Calculate Free-molecular pressure distribution
+        Cn, Ct = SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT)
+        
+    # Calculate aerodynamic forces by integrating over surface
     
+    
+    # Move back to local horizon frame of reference
+    
+    
+    # Should treat inertia tensor here as well?
+    
+    
+    
+    #Calculate moments
     L = 0.
     M = 0.
     N = 0.
+    # External torque around the centre of mass
+    # This MUST be in the local horizon fixed frame of reference?
     Ext = np.array([[L],
                    [M],
                    [N]])
@@ -114,7 +147,7 @@ def SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT):
             else:
                 Cn[i] = 0
                 Ct[i] = 0
-    return
+    return Cn, Ct
     
 def CpMaxCalc(Ma):
     k = 1.4
