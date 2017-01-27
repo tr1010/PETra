@@ -82,3 +82,44 @@ def traj(y, t, sc, J, earth):
 
 
     return dydt
+    
+def traj_uvw(x,earth,geom):
+    r, theta, phi, u, v, w, e = x
+    
+    cphi = np.cos(phi)
+    tphi = np.tan(phi)
+    
+    Gd = np.array([[e[0]**2 + e[1]**2 + e[2]**2 - e[3]**2, 2*(e[1]*e[2] + e[0]*e[3]), 2*(e[1]*e[3] - e[0]*e[2])],
+                   [2*(e[1]*e[2] - e[0]*e[3]), e[0]**2 - e[1]**2 + e[2]**2 - e[3]**2, 2*(e[0]*e[1] + e[2]*e[3])],
+                   [2*(e[1]*e[3] + e[0]*e[2]), 2*(e[2]*e[3] - e[0]*e[1]), e[0]**2 - e[1]**2 - e[2]**2 + e[3]**2]])
+    
+    Gphi = np.array([[np.cos(phi-phigd), 0, np.sin(phi-phigd)],
+                     [0, 1, 0],
+                     [-np.sin(phi-phigd), 0, np.cos(phi-phigd)]])
+    
+    G = np.dot(Gd,Gphi)
+    
+    GTA = np.dot(np.transpose(G),aero)
+    
+    emat = np.array([[-e[1], -e[2], -e[3]],
+                     [e[0], -e[3], e[2]],
+                     [e[3], e[0], -e[1]],
+                     [-e[2], e[1], e[0]]])
+    
+    edotrot = np.subtract(np.array([wx,wy,wz]),(1./r)*np.dot(G,np.array([v, -u, -v*tphi])))
+    edot = 0.5*np.dot(emat,edotrot)
+    
+    dxdt = [-w,
+            u/r,
+            v/(r*cphi) - Omega,
+            GTA[0] + (u*w-v**2*tphi)/r - (3*mu*J2/(2*r**4))*np.sin(2*phi),
+            GTA[1] + (u*v*tphi + vw)/r,
+            GTA[2] - (u**2 + v**2)/r + mu/r**2 - (3*mu*J2/(2*r**4))*(2-3*cphi**2),
+            np.array([edot[0], edot[1], edot[2],edot[3]]),
+            wxdot,
+            wydot,
+            wzdot
+            ]
+    
+    
+    return dydt
