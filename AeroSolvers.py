@@ -9,78 +9,49 @@ Created on Mon Jan 23 10:18:06 2017
 import numpy as np
 import math
     
-def Aero_Calc(normals, Ma, Kn, RT, V, psi, gam, q1, q2, q3, q4, P, Q, R):
+def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
     """ 
     This function takes uses Newtonian impact theory and/or Schaaf & Chambre's 
     Molecular Flow model to calculate the Pressure coefficient on each panel of 
     the model geometry. It uses this pressure distributions to then calculate
     Aerodynamic Forces and Moments which are returned to be used in the 
-    trajectory calculation
+    trajectory calculation (in the body frame of reference)
     """
-    sgam = np.sin(gam)
-    cgam = np.cos(gam)
-    spsi = np.sin(psi)
-    cpsi = np.cos(psi)
-    
-    # Assemble rotation matrices?
-    Cw = np.array([[sgam, cgam*spsi, cgam*cpsi],
-                   [0, cpsi, -spsi],
-                   [-cgam, sgam*spsi, sgam*cpsi]])
-    
-    # In quaternion formulation?
-    quat = np.array([q1,q2,q3,q4])
-    
-    S = np.array([[0., -q3, q2],
-                  [q3, 0., -q1],
-                  [-q2, q1, 0.]])
-    
-    temp = np.subtract(2*np.dot(quat,quat),np.multiply(2*q4,S))
-    
-    C = np.add((q4**2 - np.dot(quat,quat))*np.eye(3),temp)
-    
-    # Convert Quaternion to Euler angles -- not necessary?
-#    Euler = np.array([np.arctan2(2*(q4*q1+q2*q3),1-2*(q1**2 + q2**2)),
-#                      np.arcsin(2*(q4*q2 - q3*q1)),
-#                      np.arctan2(2*(q4*q3 + q1*q2),1-2*(q2**2+q3**2))])
-    
-    # Find free stream velvec wrt to local horizon frame of reference
-    temp = np.multiply(np.linalg.inv(Cw),np.linalg.inv(C))
-    
-    Vinf = np.multiply(temp,np.array([V,0.,0.]))
-    
                       
-    # Dependence on Knudsen number
-    if Kn < 14.5:
-        if Kn < 0.0146:
+    # Dependence on Knudsen number -- choose between Newtonian Impact, Schaaf &
+    # Chambre or a bridging function between the two.
+    numpans = np.size(normals,1)
+    if Kn < 1:
+        if Kn < 0.01:
             # Calculate continuum pressure distribution
             Cp = NewtonSolver(normals,Vinf,Ma,0)
+            Ct = np.zeros((1,numpans))
         else:
-            # Calculate Transition pressure distribution
+            # Calculate both if in transition
+            Cp = NewtonSolver(normals,Vinf,Ma,0)
+            Cp, Ct = SchaafChambre(normals, Vinf, Ma, R, T, Tw, SigN = 0.92, SigT = 0.92)
+            
             #Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
     else:
         # Calculate Free-molecular pressure distribution
-        Cn, Ct = SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT)
+        Cp, Ct = SchaafChambre(normals, Vinf, Ma, R, T, Tw, SigN = 0.92, SigT = 0.92)
         
     # Calculate aerodynamic forces by integrating over surface
     
+    AeroF = np.zeros((1,3))
+    AeroM = np.zeros((1,3))
+
+    for i in range(0,numpans):
+        # Convert to normal and tangential FORCES
+        Pn = Cp[i]*q_inf + p_inf
+        St = Ct*q_inf
+        
+        # Sum across panels to calculate forces and moments
+        temp = -Pn*normals[:,i] + St*(np.cross(normals[:,i],np.cross(Vinf,normals[:,i])))
+        AeroF = AeroF + temp*areas[i]    
+        AeroM = AeroM + (np.cross(centroids[:,i],temp))*areas[i]
     
-    # Move back to local horizon frame of reference
-    
-    
-    # Should treat inertia tensor here as well?
-    
-    
-    
-    #Calculate moments
-    L = 0.
-    M = 0.
-    N = 0.
-    # External torque around the centre of mass
-    # This MUST be in the local horizon fixed frame of reference?
-    Ext = np.array([[L],
-                   [M],
-                   [N]])
-    return Cd, Ext
+    return AeroF, AeroM
 
 def NewtonSolver(normals, Vinf, M, switch):   
     # declare/initialise variables

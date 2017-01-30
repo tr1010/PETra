@@ -45,7 +45,7 @@ def get_input():
 earth, sc, t, y0, J = get_input()
 
 # Integrate
-sol = sp.integrate.odeint(tr.traj,y0,t,args=(sc, J, earth))
+sol = sp.integrate.odeint(tr.traj_uvw,y0,t,args=(sc, J, earth))
 
 # Postprocess results
 pp.plot(sol, sc, earth, t)

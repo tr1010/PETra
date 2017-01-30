@@ -82,6 +82,16 @@ def Cube(L,CG_off):
                         [0., 0., 0., 0., 1., 1., 1., 1.],
                         [0., 0., 1., 1., 0., 0., 1., 1.]])
     
+    #Centre of gravity with offset given by user
+    CoG = [L/2. + CG_off[0], L/2. + CG_off[1], L/2. + CG_off[2]]
+    
+    # Move origin to centre of gravity
+    for i in range(0,np.size(verts,1)):
+        verts[:,i] = np.subtract(verts[:,i],CoG)
+    
+    # New CoG is at origin
+    CoG = np.zeros((3,1))
+    
     surfs = np.array([[0, 1, 1, 0, 2, 6],
                       [1, 5, 0, 3, 6, 5],
                       [2, 6, 4, 7, 7, 4],
@@ -89,7 +99,9 @@ def Cube(L,CG_off):
     
     normals = CalcNormals(verts,surfs)
     
-    #Centre of gravity with offset given by user
-    CoG = [L/2. + CG_off[0], L/2. + CG_off[1], L/2. + CG_off[2]]
+    areas = MeshAreas(verts,surfs)
     
-    return verts, surfs, normals, CoG
+    centroids = MeshCentres(verts,surfs)
+    
+    
+    return verts, surfs, areas, normals, centroids, CoG
