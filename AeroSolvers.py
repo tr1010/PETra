@@ -38,19 +38,19 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
         
     # Calculate aerodynamic forces by integrating over surface
     
-    AeroF = np.zeros((1,3))
-    AeroM = np.zeros((1,3))
+    AeroF = np.zeros(3)
+    AeroM = np.zeros(3)
 
     for i in range(0,numpans):
         # Convert to normal and tangential FORCES
         Pn = Cp[i]*q_inf + p_inf
-        St = Ct*q_inf
+        St = Ct[i]*q_inf
         
         # Sum across panels to calculate forces and moments
         temp = -Pn*normals[:,i] + St*(np.cross(normals[:,i],np.cross(Vinf,normals[:,i])))
         AeroF = AeroF + temp*areas[i]    
         AeroM = AeroM + (np.cross(centroids[:,i],temp))*areas[i]
-    
+        #print (AeroF)
     return AeroF, AeroM
 
 def NewtonSolver(normals, Vinf, M, switch):   
@@ -92,7 +92,7 @@ def SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT):
     Ct = np.zeros((totpans,1))
     
     # Now calculate speed ratio and flow angle for each panel
-    s = Vinf/(np.sqrt(2*R*T))
+    s = np.linalg.norm(Vinf)/(np.sqrt(2*R*T))
     
     # check if panel is shaded or not then calculate CN or Ct using Schaaf & Chambre
     for i in range(0,totpans):
