@@ -13,9 +13,10 @@ different frames of reference
 """
 
 import numpy as np
+import atmospy76 as at76
 import atmospheres as atmo
 import AeroSolvers as Aero
-from pprint import pprint
+#from pprint import pprint
     
 def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
     e = np.zeros(4)
@@ -24,27 +25,30 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
     r, phi, theta, u, v, w, e[0], e[1], e[2], e[3], angvel[0], angvel[1], angvel[2] = x
     mu, RE, J2, ome = earth
     Vinf = np.linalg.norm(np.array([u,v,w])) #speed of s/c
-    
+    scLS = areas[0]
+    Tw = 287.0
+    R = 287.058
     if r <= earth[1]:
-        dxdt = np.zeros(13)
+        dxdt = np.zeros((13,))
     else:
         # Atmosphere calculation at new altitude
+        rho, P, T, mfp, eta, SoS = atmo.US76_FORTRAN(r-earth[1])
         rho, P, T, mfp, eta, MolW = atmo.US62_76(r)
+        print (r)
+        print(P)
+        print(rho)
+        print('!!!')
         
-        # Find Cd 
-        Kn = mfp/areas[0]
-        R = 8314.32/MolW
-        RT = R*T
-        SoS = (1.4*RT)**0.5
         Ma = Vinf/SoS
+        Kn = mfp/scLS
         q_inf = 0.5*rho*Vinf**2
     
         cphi = np.cos(phi)
         tphi = np.tan(phi)
     
-        phigd = 0.
+        phigd = phi
     
-        Gd = np.array([[e[0]**2 + e[1]**2 + e[2]**2 - e[3]**2, 2*(e[1]*e[2] + e[0]*e[3]), 2*(e[1]*e[3] - e[0]*e[2])],
+        Gd = np.array([[e[0]**2 + e[1]**2 - e[2]**2 - e[3]**2, 2*(e[1]*e[2] + e[0]*e[3]), 2*(e[1]*e[3] - e[0]*e[2])],
                        [2*(e[1]*e[2] - e[0]*e[3]), e[0]**2 - e[1]**2 + e[2]**2 - e[3]**2, 2*(e[0]*e[1] + e[2]*e[3])],
                        [2*(e[1]*e[3] + e[0]*e[2]), 2*(e[2]*e[3] - e[0]*e[1]), e[0]**2 - e[1]**2 - e[2]**2 + e[3]**2]])
     
@@ -56,13 +60,16 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
     
         # freestream velocity in the body frame of reference
         VinfB = np.dot(Gcb,-np.array([u,v,w]))
+        
+        #test = np.linalg.norm(VinfB)
     
         # Aerodynamics Calculations -- forces and moments in the body frame of reference
-        AeroF, AeroM = Aero.Aero_Calc(VinfB, areas, normals, centroids, Ma, Kn, R, T, q_inf, P, Tw = 287.)
+        AeroF, AeroM = Aero.Aero_Calc(VinfB, areas, normals, centroids, Ma, Kn, R, T, q_inf, P, Tw)
     
         # Transform Aerodynamic forces to Geocentric FoR
         AeroF_GC = np.dot(np.linalg.inv(Gcb),np.transpose(AeroF))
-    
+        #print(AeroF)
+        #print(AeroF_GC)
         # Solve eqns of rotational motion to Calculate angular velocity in body frame
         temp = np.transpose(np.subtract(AeroM,np.cross(angvel,np.dot(I,angvel))))
         angvel_dot = np.dot(np.linalg.inv(I),temp)

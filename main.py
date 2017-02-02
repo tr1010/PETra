@@ -18,7 +18,7 @@ def get_input():
     verts, surfs, areas, normals, centroids, CoG, I, mass = mesh.Box(1,800,np.array([0.,0.,0.]))
     #geom = (mass, areas, normals, centroids, I)
     # time-stepping params:
-    tmax = 200
+    tmax = 1000
     ndt = 1001 
     t = np.linspace(0,tmax,ndt)
     
@@ -29,15 +29,15 @@ def get_input():
     # x0 = [r, theta, phi, u, v, w, e0, e1, e2, e3, angvel1, angvel2, angvel3]
     FPA = 0.54681217*np.pi/180.
     Head = 99.955734*np.pi/180.
-    vel = 0. #7.58930433867e2
+    vel = 7.58930433867e3
     lat = -79.8489182889*np.pi/180.
     long = -10*np.pi/180.0
     
-    FPA = 13*np.pi/180.
-    Head = 77.7*np.pi/180.
-    vel = 5500. #7.58930433867e2
-    lat = 69.36*np.pi/180.
-    long = 19.77*np.pi/180.0
+#    FPA = 13*np.pi/180.
+#    Head = 77.7*np.pi/180.
+#    vel = 5500. #7.58930433867e2
+#    lat = 69.36*np.pi/180.
+#    long = 19.77*np.pi/180.0
     
     u = vel*np.cos(Head)*np.cos(FPA)
     v = vel*np.cos(FPA)*np.sin(Head)
@@ -74,6 +74,6 @@ for i in range(0,np.size(sol,0)):
 plt.figure()
 plt.plot(t,speed)
 plt.figure()
-plt.plot(t,sol[:,0])
+plt.plot(t,sol[:,0]-earth[1])
 # Postprocess results
 #pp.plot(sol, sc, earth, t)
