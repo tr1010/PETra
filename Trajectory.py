@@ -28,16 +28,14 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
     scLS = areas[0]
     Tw = 287.0
     R = 287.058
-    if r <= earth[1]:
+    rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
+    
+    if r <= earth[1]: # or Vinf/SoS < 3:
         dxdt = np.zeros((13,))
     else:
         # Atmosphere calculation at new altitude
-        rho, P, T, mfp, eta, SoS = atmo.US76_FORTRAN(r-earth[1])
-        rho, P, T, mfp, eta, MolW = atmo.US62_76(r)
-        print (r)
-        print(P)
-        print(rho)
-        print('!!!')
+        #rho, P, T, mfp, eta, SoS = atmo.US76_FORTRAN(r-earth[1])
+        rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
         
         Ma = Vinf/SoS
         Kn = mfp/scLS

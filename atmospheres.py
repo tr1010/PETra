@@ -77,8 +77,9 @@ def US62_76(r):
             rho = np.float64(MolW*1e-3*P/(R0*T))
             mfp = np.float64(MolW*1e-3/(2**0.5*np.pi*sig**2*rho*Na)) # mean free path
             eta = np.float64(1.458e-6*T**1.5/(T + 110.4)) # dynamic viscosity via sutherland law
+            SoS = np.float64(np.sqrt(1.4*287.085*T))
 
-    return rho, P, T, mfp, eta, MolW
+    return rho, P, T, mfp, eta, MolW, SoS
     
 def US76_FORTRAN(alt):
     alt = alt*1e-3
