@@ -13,14 +13,22 @@ import postprocessing as pp
 import meshtools as mesh
 import matplotlib.pyplot as plt
 import atmospheres as atmo
+import InputFile as InFile
 
-def get_input():
-    # geom =[m, areas, normals, centroids, J]
+def process_inputs(get_inputs):
+    
+    rawinputs = get_inputs()
+    
+    
+        #e = np.zeros(4)
+    #e[0] = 1.
+    #angvel = np.zeros(3)#np.array([0.005,0.005,0.005])
+    
     BLengths = np.array([3.4,1.8,2.35])
     CoG_Off = np.array([0.2,0.,0.])
     verts, surfs, areas, normals, centroids, CoG, I, mass = mesh.Box(BLengths,800,CoG_Off)
     scLS = np.max(BLengths)
-    #geom = (mass, areas, normals, centroids, I)
+    
     # time-stepping params:
     tmax = 300
     ndt = 1001 
@@ -53,21 +61,35 @@ def get_input():
     # initial orientation and angular velocities
     e = np.zeros(4)
     e[0] = 1.
-    angvel = np.zeros(3)#np.array([0.005,0.005,0.005])
+    angvel = np.zeros(3)  #np.array([0.005,0.005,0.005])
     
     x0 = np.array([alt + earth[1], lat, long, u, v, w, e[0], e[1], e[2], e[3], angvel[0], angvel[1], angvel[2]])
     
     return earth, mass, areas, normals, centroids, I, t, x0, scLS
-
     
+    
+def main(): 
+    
+    earth, mass, areas, normals, centroids, I, t, x0, scLS = process_inputs(InFile.get_inputs)
+
+    sol = sp.integrate.odeint(tr.traj_uvw,x0,t,args=(earth, mass, areas, normals, centroids, I, scLS))
+    
+    pp_output = pp.postprocess(inputs, t, sol)
+    
+    return pp_output
+    
+# Standard boilerplate to call the main() function to begin
+# the program.
+if __name__ == '__main__':
+    main()   
+
 
 #Get input
-earth, mass, areas, normals, centroids, I, t, x0, scLS = get_input()
 
 # test
 #dxdt = tr.traj_uvw(x0, t, earth, mass, areas, normals, centroids, I)
 # Integrate
-sol = sp.integrate.odeint(tr.traj_uvw,x0,t,args=(earth, mass, areas, normals, centroids, I, scLS))
+
 
 
 

@@ -65,9 +65,7 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
                 
                 AeroF = AeroF + ForceCoeff*areas[i]*q_inf   
                 AeroM = AeroM + (np.cross(centroids[:,i],ForceCoeff))*areas[i]
-                                          
-                #Cd = Cdcont + (Cdfm - Cdcont)*((1./3.)*np.log10(Kn/0.5) + 0.5113)
-    
+
     # for free-molecular
     else:
         # Calculate Free-molecular pressure distribution
@@ -81,16 +79,6 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
                 AeroF = AeroF + tempCont*areas[i]   
                 AeroM = AeroM + (np.cross(centroids[:,i],tempCont))*areas[i]
                                           
-    
-#    Cp = NewtonSolver(normals,Vinf,Ma,1)
-#    Ct = np.zeros(numpans)
-#    Pn = q_inf*Cp + p_inf
-#    St = q_inf*Ct
-#    # Sum across panels to calculate forces and moments
-#    for i in range(0,numpans):
-#        tempCont = -Pn[i]*normals[:,i] + St[i]*(np.cross(normals[:,i],np.cross(Vinf,normals[:,i])))  
-#        AeroF = AeroF + tempCont*areas[i]   
-#        AeroM = AeroM + (np.cross(centroids[:,i],tempCont))*areas[i] 
 
     return AeroF, AeroM
 
@@ -142,16 +130,7 @@ def SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT):
         else:
             Cn[i] = 0.
             Ct[i] = 0.
-#        else:
-#            magnorm = np.linalg.norm(normals[:,i])
-#            magVinf = np.linalg.norm(Vinf)
-#            
-#            if (magnorm + magVinf) < np.max(np.array([magnorm,magVinf])):
-#                Cn[i] = (1./s**2)*((2-SigN)*Gam1 + SigN*((np.pi*Tw/T)**0.5)*Gam2/2)
-#                Ct[i] = SigT*sdelta*Gam2/s
-#            else:
-#                Cn[i] = 0
-#                Ct[i] = 0
+
     return Cn, Ct
     
 def CpMaxCalc(Ma):
