@@ -78,9 +78,9 @@ def MeshAreas(Verts,surfs):
 
 # cube
 def Box(L,rho,CG_off):
-    verts = L*np.array([[0., 1., 1., 0., 0., 1., 1., 0.],
-                        [0., 0., 0., 0., 1., 1., 1., 1.],
-                        [0., 0., 1., 1., 0., 0., 1., 1.]])
+    verts = np.array([[0., 1.*L[0], 1.*L[0], 0., 0., 1.*L[0], 1.*L[0], 0.],
+                      [0., 0., 0., 0., 1.*L[1], 1.*L[1], 1.*L[1], 1.*L[1]],
+                      [0., 0., 1.*L[2], 1.*L[2], 0., 0., 1.*L[2], 1.*L[2]]])
     
     surfs = np.array([[0, 1, 1, 0, 2, 6],
                       [1, 5, 0, 3, 6, 5],
@@ -88,7 +88,7 @@ def Box(L,rho,CG_off):
                       [3, 2, 5, 4, 3, 7]])
     
     #Centre of gravity with offset given by user
-    CoG = np.add(L/2.,CG_off)
+    CoG = np.add(L/2,CG_off)
     
     # Move origin to centre of gravity
     for i in range(0,np.size(verts,1)):
@@ -99,14 +99,14 @@ def Box(L,rho,CG_off):
     
     # Now calculate inertia tensor
     # for a cuboid:
-    mass = rho*L**3
-    temp = mass/12
-    I = np.array([[temp*(2*L**2), 0., 0.],
-                  [0., temp*(2*L**2), 0.],
-                  [0., 0., temp*(2*L**2)]])
+    mass = rho*np.prod(L)
+    temp = mass/12.
+    I = np.array([[temp*(L[1]**2 + L[2]**2), 0., 0.],
+                  [0., temp*(L[0]**2 + L[2]**2), 0.],
+                  [0., 0., temp*(L[0]**2 + L[1]**2)]])
     
     # Calculate new principle axis at offset centre of mass
-    I = I + mass*(np.eye(3)*np.linalg.norm(CG_off)**0.5 - np.outer(CG_off,CG_off))
+    I = I + mass*(np.eye(3)*np.linalg.norm(CG_off)**2 - np.outer(CG_off,CG_off))
     
     normals = CalcNormals(verts,surfs)
     

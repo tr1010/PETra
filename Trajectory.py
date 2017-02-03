@@ -18,19 +18,18 @@ import atmospheres as atmo
 import AeroSolvers as Aero
 #from pprint import pprint
     
-def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
+def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS):
     e = np.zeros(4)
     angvel = np.zeros(3)
     
     r, phi, theta, u, v, w, e[0], e[1], e[2], e[3], angvel[0], angvel[1], angvel[2] = x
     mu, RE, J2, ome = earth
     Vinf = np.linalg.norm(np.array([u,v,w])) #speed of s/c
-    scLS = areas[0]
     Tw = 287.0
     R = 287.058
     rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
     
-    if r <= earth[1]: # or Vinf/SoS < 3:
+    if r <= earth[1] or Vinf/SoS < 1:
         dxdt = np.zeros((13,))
     else:
         # Atmosphere calculation at new altitude
@@ -80,7 +79,7 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I):
     
         edotrot = np.subtract(angvel,(1./r)*np.dot(Gcb,np.array([v, -u, -v*tphi])))
         edot = 0.5*np.dot(emat,edotrot)
-        
+
         dxdt = [-w,
                 u/r,
                 v/(r*cphi) - ome,
