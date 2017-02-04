@@ -17,23 +17,19 @@ def get_inputs():
     ContinuumMethod = 0 # 1 for Classic Newtonian, 0 for Modified Newtonian 
     
     # Spacecraft dimensions and parameters
+    GeometryChoice = 0 # choice of box or plate or sphere (at the moment only box is available)
     scWidth = 1. # Width [m]
     scDepth = 1. # Depth [m]
     scHeight = 1. # Height [m]
     scDensity = 500. # Density of spacecraft [kg/m3]
-    
-    # Spacecraft CoG offset (?)
-    # S/C density
-    
-    tmax = 500 # time [s]
-    
+  
     # Initial Spacecraft Conditions    
     FlightPathAngle = 2.21 # Positive down [deg]
     Heading = 102. # Measured clockwise from North [deg]
     Speed = 7875.8 # Velocity
-    Latitude = 48.68  # [deg] Actually Inclination. Geodetic Latitude input will be implemented soon
+    Latitude = 48.68  # [deg] Actually Declination. Geodetic Latitude input will be implemented soon
     Longitude = 123.68 # [deg]
-    alt = 120.0e3 # Initial altitude [m]
+    Altitude = 120.0e3 # Initial altitude [m]
     
     Pitch = 0. # Euler Angle 1 measured from Geocentric coordinate system
     Yaw = 0. # Euler Angle 2 measured from Geocentric coordinate system
@@ -45,11 +41,11 @@ def get_inputs():
     
     # Integration parameters
     ndt = 1001 # Number of output steps
+    tmax = 500 # time [s]
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #          P O S T P R O C E S S I N G      O P T I O N S           #
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    
     # Postprocessing Options
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -69,8 +65,43 @@ def get_inputs():
     SigN = 0.9      # Normal momentum accomodation coefficient
     SigT = 0.9      # Tangential momentum accomodation coefficient
     
-    inputDictionary = 
     
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    #               A S S E M B L E      I N P U T S                    #
+    #   (Don't mess with this even if you do know what you're doing)    #
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    inputDictionary = dict([('Atmosphere' , Atmosphere),
+                       ('ContinuumMethod' , ContinuumMethod),
+                       ('GeometryChoice' , GeometryChoice),
+                       ('scWidth' , scWidth),
+                       ('scDepth' , scDepth),
+                       ('scHeight' , scHeight),
+                       ('scDensity' , scDensity),
+                       ('tmax' , tmax),
+                       ('ndt' , ndt),
+                       ('FlightPathAngle' , FlightPathAngle),
+                       ('Heading' , Heading),
+                       ('Speed' , Speed),
+                       ('Latitude' , Latitude),
+                       ('Longitude' , Longitude),
+                       ('Altitude' , Altitude),
+                       ('Pitch' , Pitch),
+                       ('Yaw' , Yaw),
+                       ('Roll' , Roll),
+                       ('omega_x' , omega_x),
+                       ('omega_y' , omega_y),
+                       ('omega_z' , omega_z),
+                       ('Earthmu' , Earthmu),
+                       ('EarthRad' , EarthRad),
+                       ('EarthJ2' , EarthJ2),
+                       ('EarthOmega' , EarthOmega),
+                       ('KnFM' , KnFM),
+                       ('KnCont'  , KnCont),
+                       ('a1' , a1),
+                       ('a2' , a2),
+                       ('SigN' , SigN),
+                       ('SigT' , SigT)])
+
     return inputDictionary
 
 

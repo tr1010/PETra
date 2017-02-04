@@ -9,7 +9,7 @@ Created on Tue Nov 29 11:45:15 2016
 @author: tr1010
 """
 import numpy as np
-import atmospy76 as atmospy
+#import atmospy76 as atmospy
 # converts geometric altitude to geopotential altitude
 def me2po(E,Z):
     H = E*Z/(E + Z)
@@ -80,27 +80,3 @@ def US62_76(r):
             SoS = np.float64(np.sqrt(1.4*287.085*T))
 
     return rho, P, T, mfp, eta, MolW, SoS
-    
-def US76_FORTRAN(alt):
-    alt = alt*1e-3
-    sig_atmo,del_atmo,the_atmo = atmospy.atmosphere(alt)
-    
-    #Some constants:
-    Na = np.float64(6.0220978e23) # avogadro number
-    d = np.float64(3.65e-10)      # molecule diameter
-    # Sea level standard values:
-    P0 = 101325.0 #Pa
-    T0 = 288.15 #K
-    R = 287.058
-    rho0 = P0/(R*T0)
-    asound0 = np.sqrt(1.4*R*T0)
-    
-    T=T0*the_atmo
-    P=P0*del_atmo
-    rho=rho0*sig_atmo
-    asound=asound0*np.sqrt(the_atmo)
-    eta = np.float64(1.458e-6*T**1.5/(T + 110.4)) # dynamic viscosity via sutherland law
-    mfp = 8.3145*T /(2**0.5*np.pi*d**2*Na*P)
-    
-    
-    return rho, P, T, mfp, eta, asound

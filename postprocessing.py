@@ -8,144 +8,119 @@ Created on Mon Dec 12 15:44:46 2016
 import numpy as np
 import matplotlib.pyplot as plt
 import atmospheres as atmo
-import scipy as sp
-import Trajectory as tr
 
-def plot(sol, sc, earth, t):
-    
+def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthScale):
+    r2d = 180./np.pi
     ndt = np.size(t)
-    h = sol[:,0] - earth[1]
-    lat = np.rad2deg(sol[:,1])
-    long = np.rad2deg(sol[:,2])
-    V = sol[:,3]
-    psi = np.rad2deg(sol[:,4])
-    gam = np.rad2deg(sol[:,5])
+    # Unpack solution array:
+        
+    #Position
+    Altitude = (sol[:,0] - earth[1])*1e-3
+    Latitude =  sol[:,1]*r2d # Actually Declination
+    Longitude = sol[:,2]*r2d
     
-    # Calculate Trajectory Flow characteristics
-    rho = np.zeros((ndt,))
-    P = np.zeros((ndt,))
-    T = np.zeros((ndt,))
-    mfp = np.zeros((ndt,))
-    eta = np.zeros((ndt,))
-    Kn = np.zeros((ndt,))
-    D = np.zeros((ndt,))
-    SoS = np.zeros((ndt,))
-    Ma = np.zeros((ndt,))
-    MolW = np.zeros((ndt,))
-    Re = np.zeros((ndt,))
-    Cd = np.zeros(ndt,)
+    # Geocentric Velocity components
+    u = sol[:,3]
+    v = sol[:,4]
+    w = sol[:,5]
+
+    # Velocity components to Spherical Coords
+    Speed = np.zeros(ndt)
+    for i in range(0,ndt): 
+        Speed[i] = np.linalg.norm(np.array([u[i],v[i],w[i]]))
+        
+    FlightPathAngle = np.arcsin(np.divide(w,Speed))*r2d
+    Heading = np.arccos(np.divide(u,Speed*np.cos(FlightPathAngle/r2d)))*r2d
+    
+    # Quaternion to Euler Angles
+    Pitch = np.rad2deg(-np.arcsin(2*(sol[:,7]*sol[:,9] - sol[:,8]*sol[:,6])))
+    Yaw = np.rad2deg(np.arctan2(2*(sol[:,8]*sol[:,7]+sol[:,6]*sol[:,9]),sol[:,6]**2+sol[:,7]**2 - sol[:,8]**2-sol[:,9]**2))
+    Roll = np.rad2deg(np.arctan2(2*(sol[:,8]*sol[:,9]+sol[:,6]*sol[:,7]),sol[:,6]**2-sol[:,7]**2 - sol[:,8]**2+sol[:,9]**2))
+    
+    # Angular Velocities (around body axes)
+    wx = sol[:,10]
+    wy = sol[:,11]
+    wz = sol[:,12]
+
+    # Now calculate interesting outputs -- 
+    # Mach number, Knudsen number, Energy, Force, Dynamic Pressure
+    
+    # Get atmospheric quantities at each point (this should be in main function
+    # I promise I'll fix it soon)
+    rho = np.zeros(ndt)
+    P = np.zeros(ndt)
+    T = np.zeros(ndt)
+    mfp = np.zeros(ndt)
+    eta = np.zeros(ndt)
+    MolW = np.zeros(ndt)
+    SoS = np.zeros(ndt)
+    
     for i in range(0,ndt):
         if sol[i,0] <= earth[1]:
             break
         else:
-            rho[i], P[i], T[i], mfp[i], eta[i], MolW[i] = atmo.US62_76(sol[i,0])
+            rho[i], P[i], T[i], mfp[i], eta[i], MolW[i], SoS[i]  = atmo.US62_76(sol[i,0])
     
-    Kn = np.divide(mfp,sc[1]**0.5)
-    D = 0.5*rho*V**2*sc[1]*Cd
-    SoS = (1.4*287.*T)**0.5
-    Ma = np.divide(V,SoS)
-    Re = rho*V*sc[1]**0.5/eta
-    R = 8314.32/MolW
-    RT = R*T
-    # temp dummy vars
-    q1 = 0
-    q2 = 0
-    q3 = 0
-    q4 = 0
-    P = 0
-    Q = 0
-    R = 0
-    for i in range(0,ndt):
-        if sol[i,0] <= earth[1]:
-            break
-        else:   
-            Cd[i], Ext = tr.Aero_Calc(Ma[i],Kn[i],V[i],RT[i], q1, q2, q3, q4, P, Q, R)
-        
+    Mach = np.divide(Speed,SoS)
+    Kn = scLengthScale/mfp
+    Force = np.diff(Speed)/np.diff(t)/-9.81
+    DynamicPressure = 0.5*np.multiply(rho,np.square(Speed))
+    Energy = 0.5*mass*np.square(Speed) + mass*9.81*Altitude*1e3
     
-    decel = np.diff(V)/np.diff(t)/-9.81
-    Qdot = 0.5*rho*V**3*sc[1]*Cd/20.
-    soak = sp.integrate.cumtrapz(Qdot,t)
-    frag = soak*0.5*rho[0:ndt-1]*V[0:ndt-1]**2
-    KE = 0.5*sc[0]*V**2
+    # Put all results in dictionary
+    pp_output = dict([('FlightPathAngle' , FlightPathAngle),
+                      ('Heading' , Heading),
+                      ('Speed' , Speed),
+                      ('Latitude' , Latitude),
+                      ('Longitude' , Longitude),
+                      ('Altitude' , Altitude),
+                      ('Pitch' , Pitch),
+                      ('Yaw' , Yaw),
+                      ('Roll' , Roll),
+                      ('omega_x' , wx),
+                      ('omega_y' , wy),
+                      ('omega_z' , wz),
+                      ('Mach' , Mach),
+                      ('Knudsen' , Kn),
+                      ('Force' , Force),
+                      ('DynamicPressure' , DynamicPressure),
+                      ('Energy' , Energy)])
     
-
-    # Euler parameters to euler angles
-#    pitch = 
-#    roll = 
-#    yaw = 
-    # What about calculating deceleration?
+    # Plot Results in Python for user sanity check
+    plotfn(0,t,pp_output['FlightPathAngle'], 'time', 'Flight Path Angle', 's', 'deg')
+    plotfn(1,t,pp_output['Heading'], 'time', 'Heading', 's', 'deg')
+    plotfn(2,t,pp_output['Speed'], 'time', 'Speed', 's', 'm/s')
+    plotfn(3,pp_output['Longitude'],pp_output['Latitude'], 'Longitude', 'Latitude', 'deg', 'deg')
+    plotfn(4,t,pp_output['Altitude'], 'time', 'Altitude', 's', 'km')
+    plotfn(5,t,pp_output['Mach'], 'time', 'Mach Number', 's', '-')
+    plotfn(6,t,pp_output['Knudsen'], 'time', 'Knudsen number', 's', '-')
+    plotfn(7,t[0:ndt-1],pp_output['Force'], 'time', 'Force', 's', 'g')
+    plotfn(8,t,pp_output['DynamicPressure']*1e-3, 'time', 'Dynamic Pressure', 's', 'kPa')
+    plotfn(9,t,pp_output['Energy']*1e-9, 'time', 'Energy', 's', 'GJ')
     
-    fig1 = plt.figure(1)
-    plt.plot(t,h*1e-3)
-    #fig1.suptitle('Altitude vs time')
+    plt.figure(10)
+    fig,ax = plt.subplots()
+    plt.title('Euler angles')
+    ax.plot(t,pp_output['Pitch'],label='pitch')
+    ax.plot(t,pp_output['Yaw'], label='yaw')
+    ax.plot(t,pp_output['Roll'],label = 'roll')
+    legend = ax.legend()
     plt.xlabel('time [s]')
-    plt.ylabel('altitude [km]')
-    plt.savefig('Figures/altitude.png', bbox_inches='tight')
+    plt.ylabel('angle [deg]')
+    plt.show()
+    
+    return pp_output
+    
+    
+    
+def plotfn(figno, x, y, xname, yname, xunits, yunits):
+    
+    fig = plt.figure(figno)
+    plt.plot(x,y)
+    fig.suptitle(xname + ' vs ' + yname)
+    plt.xlabel(xname + ' [' + xunits +']')
+    plt.ylabel(yname + ' [' + yunits +']')
+    plt.savefig('Figures/'+ xname + '-' + yname+'.png', bbox_inches='tight')
     plt.show
     
-    fig2 = plt.figure(2)
-    plt.plot(t,V*1e-3)
-    #fig2.suptitle('Velocity vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('Velocity [km/s]')
-    plt.savefig('Figures/Velocity.png', bbox_inches='tight')
-    plt.show
-    
-    fig3 = plt.figure(3)
-    plt.plot(long,lat)
-    #fig3.suptitle('Latitude vs Longitude')
-    plt.xlabel('Longitude [deg]')
-    plt.ylabel('latitude [deg]')
-    plt.savefig('Figures/LatLong.png', bbox_inches='tight')
-    plt.show
-    
-    fig4 = plt.figure(4)
-    plt.plot(t,Ma)
-    #fig4.suptitle('Mach number vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('Mach Number [-]')
-    plt.savefig('Figures/Mach.png', bbox_inches='tight')
-    plt.show
-    
-    fig5 = plt.figure(5)
-    plt.plot(t[0:ndt-1],decel)
-    fig5.suptitle('deceleration vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('deceleration [g]')
-    plt.show
-    
-    fig6 = plt.figure(6)
-    plt.plot(t,Qdot*1e-6)
-    fig6.suptitle('Heat flux vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('Heat flux [MW]')
-    plt.show
-    
-    fig7 = plt.figure(7)
-    plt.plot(frag*1e-12,h[0:1000]*1e-3)
-    fig7.suptitle('Fragmentation criterion vs height')
-    plt.ylabel('height [km]')
-    plt.xlabel('FC = Qdot * qinf [TW.Pa]')
-    plt.show
-    
-    fig8 = plt.figure(8)
-    plt.plot(t,KE*1e-9,'b')
-    fig8.suptitle('Kinetic Energy vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('Kinetic Energy [GJ]')
-    plt.show
-    
-    fig9 = plt.figure(9)
-    plt.plot(t,0.0005*rho*V**2)
-    fig9.suptitle('Dynamic Pressure vs time')
-    plt.xlabel('time [s]')
-    plt.ylabel('dynamic pressure [kPa]')
-    plt.show
-    
-    #fig10 = plt.figure(10)
-    #plt.plot(t,Qdot*1e-6)
-    #fig10.suptitle('Heat flux vs time')
-    #plt.xlabel('time [s]')
-    #plt.ylabel('Heat flux [MW]')
-    #plt.show
-    return 
+    return

@@ -13,60 +13,63 @@ different frames of reference
 """
 
 import numpy as np
-import atmospy76 as at76
 import atmospheres as atmo
 import AeroSolvers as Aero
 #from pprint import pprint
     
 def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS):
+    
+    # Unpack
     e = np.zeros(4)
     angvel = np.zeros(3)
-    
     r, phi, theta, u, v, w, e[0], e[1], e[2], e[3], angvel[0], angvel[1], angvel[2] = x
     mu, RE, J2, ome = earth
+    
+    cphi = np.cos(phi)
+    tphi = np.tan(phi)
+    
+    # Geodetic latitude to Declination transformation
+    phigd = phi
+    
+    # Atmosphere calculation at new altitude and calculate useful aerodynamic
+    # quantities
+    rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
     Vinf = np.linalg.norm(np.array([u,v,w])) #speed of s/c
     Tw = 287.0
     R = 287.058
-    rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
+    Ma = Vinf/SoS
+    Kn = mfp/scLS
+    q_inf = 0.5*rho*Vinf**2
     
-    if r <= earth[1] or Vinf/SoS < 1:
-        dxdt = np.zeros((13,))
+    if r <= earth[1] or Vinf/SoS < 2:
+        # Check if Mach number falls below 5 (Newtonian theory fails) or
+        # S/C hits ground
+        # There is a better way of doing this which I should implement
+        dxdt = np.zeros((13,)) 
     else:
-        # Atmosphere calculation at new altitude
-        #rho, P, T, mfp, eta, SoS = atmo.US76_FORTRAN(r-earth[1])
-        rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
-        
-        Ma = Vinf/SoS
-        Kn = mfp/scLS
-        q_inf = 0.5*rho*Vinf**2
-    
-        cphi = np.cos(phi)
-        tphi = np.tan(phi)
-    
-        phigd = phi
-    
+     
+        # Geocentric to body rotation matrix
         Gd = np.array([[e[0]**2 + e[1]**2 - e[2]**2 - e[3]**2, 2*(e[1]*e[2] + e[0]*e[3]), 2*(e[1]*e[3] - e[0]*e[2])],
                        [2*(e[1]*e[2] - e[0]*e[3]), e[0]**2 - e[1]**2 + e[2]**2 - e[3]**2, 2*(e[0]*e[1] + e[2]*e[3])],
                        [2*(e[1]*e[3] + e[0]*e[2]), 2*(e[2]*e[3] - e[0]*e[1]), e[0]**2 - e[1]**2 - e[2]**2 + e[3]**2]])
-    
+        
+        #Geodetic to Geocentric transformation matrix
         Gphi = np.array([[np.cos(phi-phigd), 0, np.sin(phi-phigd)],
                          [0, 1, 0],
                          [-np.sin(phi-phigd), 0, np.cos(phi-phigd)]])
-    
+        
+        #Geodetic to body rotation matrix
         Gcb = np.dot(Gd,Gphi)
     
         # freestream velocity in the body frame of reference
         VinfB = np.dot(Gcb,-np.array([u,v,w]))
-        
-        #test = np.linalg.norm(VinfB)
     
         # Aerodynamics Calculations -- forces and moments in the body frame of reference
         AeroF, AeroM = Aero.Aero_Calc(VinfB, areas, normals, centroids, Ma, Kn, R, T, q_inf, P, Tw)
     
         # Transform Aerodynamic forces to Geocentric FoR
         AeroF_GC = np.dot(np.linalg.inv(Gcb),np.transpose(AeroF))
-        #print(AeroF)
-        #print(AeroF_GC)
+
         # Solve eqns of rotational motion to Calculate angular velocity in body frame
         temp = np.transpose(np.subtract(AeroM,np.cross(angvel,np.dot(I,angvel))))
         angvel_dot = np.dot(np.linalg.inv(I),temp)
@@ -79,7 +82,8 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS):
     
         edotrot = np.subtract(angvel,(1./r)*np.dot(Gcb,np.array([v, -u, -v*tphi])))
         edot = 0.5*np.dot(emat,edotrot)
-
+        
+        # time derivative of state variables
         dxdt = [-w,
                 u/r,
                 v/(r*cphi) - ome,
@@ -97,7 +101,7 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS):
             
     return dxdt
     
-# Old version probably broken
+# Old version probably broken. Best to ignore this bit....
 def traj(y, t, sc, J, earth):
     # Extract variables
     r, lat, lon, V, psi, gam, q1, q2, q3, q4, wx, wy, wz = y
