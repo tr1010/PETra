@@ -18,30 +18,30 @@ def get_inputs():
     
     # Spacecraft dimensions and parameters
     GeometryChoice = 0 # choice of box or plate or sphere (at the moment only box is available)
-    scWidth = 1. # Width [m]
-    scDepth = 1. # Depth [m]
-    scHeight = 1. # Height [m]
-    scDensity = 500. # Density of spacecraft [kg/m3]
+    scWidth = 3.4 # Width [m]
+    scDepth = 4.8 # Depth [m]
+    scHeight = 2.35 # Height [m]
+    scDensity = 30. # Density of spacecraft [kg/m3]
   
     # Initial Spacecraft Conditions    
-    FlightPathAngle = 2.21 # Positive down [deg]
+    FlightPathAngle = 0.54674 # Positive down [deg]
     Heading = 102. # Measured clockwise from North [deg]
-    Speed = 7875.8 # Velocity
-    Latitude = 48.68  # [deg] Actually Declination. Geodetic Latitude input will be implemented soon
-    Longitude = 123.68 # [deg]
-    Altitude = 120.0e3 # Initial altitude [m]
+    Speed = 7645. # Velocity
+    Latitude = -79.8489  # [deg] Actually Declination. Geodetic Latitude input will be implemented soon
+    Longitude = -10 # [deg]
+    Altitude = 350e3 # Initial altitude [m]
     
     Pitch = 0. # Euler Angle 1 measured from Geocentric coordinate system
     Yaw = 0. # Euler Angle 2 measured from Geocentric coordinate system
     Roll = 0. # Euler Angle 3 measured from Geocentric coordinate system
     
-    omega_x = 0. # Angular velocity about the BODY x- axis [deg/s]
-    omega_y = 0. # Angular velocity about the BODY y- axis [deg/s]
-    omega_z = 0. # Angular velocity about the BODY z- axis [deg/s]
+    omega_x = 3. #3.14 # Angular velocity about the BODY x- axis [deg/s]
+    omega_y = 2. #0.314 # Angular velocity about the BODY y- axis [deg/s]
+    omega_z = 3. #314 # Angular velocity about the BODY z- axis [deg/s]
     
     # Integration parameters
     ndt = 1001 # Number of output steps
-    tmax = 500 # time [s]
+    tmax = 30000 # time [s]
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #          P O S T P R O C E S S I N G      O P T I O N S           #
@@ -50,7 +50,7 @@ def get_inputs():
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #               M O D E L      P A R A M E T E R S                  #
-    #     (Don't mess with these unless you know what you're doing)     #
+    #                  (Not necessary to touch this)                    #
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Earthmu = 398600.4415e9     # Earth gravity constant
     EarthRad = 6378.137e3       # Earth radius
@@ -68,7 +68,7 @@ def get_inputs():
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #               A S S E M B L E      I N P U T S                    #
-    #   (Don't mess with this even if you do know what you're doing)    #
+    #                 (Not necessary to touch this)                     #
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     inputDictionary = dict([('Atmosphere' , Atmosphere),
                        ('ContinuumMethod' , ContinuumMethod),

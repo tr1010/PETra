@@ -9,25 +9,52 @@ Created on Mon Jan 23 10:18:06 2017
 import numpy as np
 import math
     
-def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
+def aero_calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw, aero_params):
     """ 
-    This function takes uses Newtonian impact theory and/or Schaaf & Chambre's 
-    Molecular Flow model to calculate the Pressure coefficient on each panel of 
-    the model geometry. It uses this pressure distributions to then calculate
-    Aerodynamic Forces and Moments which are returned to be used in the 
-    trajectory calculation (in the body frame of reference)
+    aero_calc calculates the aerodynamic forces and moments acting on the
+    spacecraft (in the spacecraft body frame of reference). In the case of 
+    hypersonic continuum flow, aero_calc uses Newtonian impact theory to calculate 
+    the pressure distribution over the body. In the free-molecular flow regime 
+    aero_calc usesSchaaf & Chambre's formulation. For the transitional regime,
+    the bridging function of Wilmoth et al. is used.
+    
+    Inputs:
+        Vinf: a 3-vector describing the oncoming free-stream flow velocity in 
+              the body frame of reference
+        areas: a n-element array of the areas of each of the shape's surfaces.
+        centroids: a 3xn numpy array of reals describing the position of each 
+                   surface's centroid 
+        Ma: Mach number of the free stream flow
+        Kn: Knudsen number of the free stream flow   
+        R: Gas constant of the free stream flow  
+        T: Free-stream temperature of the flow
+        q_inf: dynamic pressure of the free stream flow 
+        p_inf: atmospheric pressure (static pressure of the free stream)
+        Tw: Wall temperature (currently fixed to default 287 K)
+        aero_params: python tuple describing a number of parameters for the 
+                     aerodynamics solver in the following order:
+                     KnFM, KnCont, a1, a2, SigN, SigT = aero_params
+            
+    
+    Outputs:
+        AeroF: a 3 vector describing the aerodynamic forces acting on the body
+               in the body frame of reference
+        AeroM: a 3 vector describing the aerodynamic moments acting on the body
+               in the body frame of reference
+    
     """
     
     numpans = np.size(normals,1)
     AeroF = np.zeros(3)
     AeroM = np.zeros(3)
+    KnFM, KnCont, a1, a2, SigN, SigT = aero_params
     
     #calculate aerodynamic forces or moments
     # for continuum or transitional flow
-    if Kn < 10:
-        if Kn < 0.001:
+    if Kn < KnFM:
+        if Kn < KnCont:
             # Calculate continuum pressure distribution
-            Cp = NewtonSolver(normals,Vinf,Ma,1)
+            Cp = newton_solver(normals,Vinf,Ma,1)
             Ct = np.zeros(numpans)
             Pn = q_inf*Cp + p_inf
             St = q_inf*Ct
@@ -39,9 +66,9 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
             
         else:
             # Calculate continuum & FM pressure dist if in transition
-            CpCont = NewtonSolver(normals,Vinf,Ma,1)
+            CpCont = newton_solver(normals,Vinf,Ma,1)
             CtCont = np.zeros(numpans)
-            CpFM, CtFM = SchaafChambre(normals, Vinf, Ma, R, T, Tw, SigN = 0.92, SigT = 0.92)
+            CpFM, CtFM = schaaf_chambre(normals, Vinf, R, T, Tw, SigN, SigT)
             
             PnCont = q_inf*CpCont + p_inf
             StCont = q_inf*CtCont
@@ -58,9 +85,7 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
                 tempContCoeff = tempCont/(q_inf)
                 tempFMCoeff = tempFM/(q_inf)
                 
-                # Apply bridging function (Wilmoth et al.)
-                a1 = 3./8
-                a2 = 1./8                
+                # Apply bridging function (Wilmoth et al.)              
                 ForceCoeff = tempContCoeff + (tempFMCoeff - tempContCoeff)*np.sin(np.pi*(a1 + a2*np.log10(Kn)))
                 
                 AeroF = AeroF + ForceCoeff*areas[i]*q_inf   
@@ -69,7 +94,7 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
     # for free-molecular
     else:
         # Calculate Free-molecular pressure distribution
-        CpFM, CtFM = SchaafChambre(normals, Vinf, Ma, R, T, Tw, SigN = 0.92, SigT = 0.92)
+        CpFM, CtFM = schaaf_chambre(normals, Vinf, R, T, Tw, SigN, SigT)
         
         Pn = q_inf*CpFM + p_inf
         St = q_inf*CtFM
@@ -82,7 +107,23 @@ def Aero_Calc(Vinf, areas, normals, centroids, Ma, Kn, R, T, q_inf, p_inf, Tw):
 
     return AeroF, AeroM
 
-def NewtonSolver(normals, Vinf, M, switch):   
+def newton_solver(normals, Vinf, M, switch):
+    """
+    newton_solver calculates the pressure distribution on a body in a hypersonic
+    flow using Newtonian impact theory.
+    
+    Inputs:
+        normals:a 3xn vector of the outward pointing unit normal vectors for each
+                of the surfaces making up the body.
+        Vinf: a 3-vector describing the free-stream flow velocity in the body
+              frame of reference
+        M: free stream Mach number
+        switch: boolean switch. 0 is Modified Newtonian, 1 is standard Newtonian
+        
+    Outputs:
+        Cp: a n-element array of the pressure coefficients on each of the surfaces
+            making up the body.
+    """
     # declare/initialise variables
     totpans = np.size(normals,1)
     Cp = np.zeros((totpans,1))
@@ -91,7 +132,7 @@ def NewtonSolver(normals, Vinf, M, switch):
     if switch == 1:
         CpMax = 2.
     else:
-        CpMax = CpMaxCalc(M)
+        CpMax = cp_max_calc(M)
     
     # Loop over panels to calculate pressure distribution
     for i in range(0,totpans):
@@ -106,7 +147,26 @@ def NewtonSolver(normals, Vinf, M, switch):
  
     return Cp
     
-def SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT):
+def schaaf_chambre(normals, Vinf, R, T, Tw, SigN, SigT):
+    """
+    schaaf_chambre uses Schaaf & Chambre's formulation to calculate the pressure
+    distribution in a free-molecular flow regime.
+    
+    Inputs:
+        normals:a 3xn vector of the outward pointing unit normal vectors for each
+                of the surfaces making up the body.
+        Vinf: a 3-vector describing the free-stream flow velocity in the body
+              frame of reference
+        R: Gas constant of the free stream flow  
+        T: Free-stream temperature of the flow
+        Tw: Wall temperature (currently fixed to default 287 K)
+        SigN: Normal momentum accomodation coefficient
+        SigT: tangential momentum accomodation coefficient
+    
+    Outputs:
+        Cn: n-element array of the normal aerodynamic force coefficients
+        Ct: n-element array of the tangential aerodynamic force coefficient
+    """
     # declare/initialise variables
     totpans = np.size(normals,1)
     Cn = np.zeros((totpans,1))
@@ -126,14 +186,21 @@ def SchaafChambre(normals, Vinf, M, R, T, Tw, SigN, SigT):
         if cdelta < 0 and np.linalg.norm(cdelta) > 1e-8:
             Cn[i] = (1./s**2)*((2.-SigN)*Gam1 + SigN*((np.pi*Tw/T)**0.5)*Gam2/2.)
             Ct[i] = SigT*sdelta*Gam2/s
-            #Ct[i] = 0.
         else:
             Cn[i] = 0.
             Ct[i] = 0.
 
     return Cn, Ct
     
-def CpMaxCalc(Ma):
+def cp_max_calc(Ma):
+    """
+    Calculates the maximum pressure coefficient for modified Newtonian flow
+    
+    Inputs:
+        Ma:
+    Outputs:
+        CpMax:
+    """
     k = 1.4
     
     PO2_pinf = (((k+1)**2 * Ma**2)/(4*k*Ma**2 - 2*(k-1)))**(k/(1-k)) * \

@@ -62,7 +62,7 @@ def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthS
             rho[i], P[i], T[i], mfp[i], eta[i], MolW[i], SoS[i]  = atmo.US62_76(sol[i,0])
     
     Mach = np.divide(Speed,SoS)
-    Kn = scLengthScale/mfp
+    Kn = mfp/scLengthScale
     Force = np.diff(Speed)/np.diff(t)/-9.81
     DynamicPressure = 0.5*np.multiply(rho,np.square(Speed))
     Energy = 0.5*mass*np.square(Speed) + mass*9.81*Altitude*1e3

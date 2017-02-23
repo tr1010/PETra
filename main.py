@@ -7,16 +7,24 @@ Created on Tue Nov 29 18:05:23 2016
 @author: tr1010
 """
 import scipy as sp
-import Trajectory as tr
+import trajectory as tr
 import postprocessing as pp
-import InputFile as InFile
-import Process_Inputs as PI
+import inputs as InFile
+import input_processing as PI
     
-def main(): 
+def main():
+    """
+    PETra's main function calls three functions:
+        process_inputs
+        sp.integrate.odeint (a RK45 ODE integrator included in scipy)]
+        postprocess
+    It returns two Dictionaries: InputDict and ResultsDict which contain all
+    inputs used in the run and all the outputs generated
+    """
     
-    earth, mass, areas, normals, centroids, I, t, x0, scLengthScale, InputDict = PI.process_inputs(InFile.get_inputs)
+    earth, mass, areas, normals, centroids, I, t, x0, scLengthScale, aero_params, InputDict = PI.process_inputs(InFile.get_inputs)
 
-    sol = sp.integrate.odeint(tr.traj_uvw,x0,t,args=(earth, mass, areas, normals, centroids, I, scLengthScale))
+    sol = sp.integrate.odeint(tr.traj_uvw,x0,t,args=(earth, mass, areas, normals, centroids, I, scLengthScale, aero_params))
     
     ResultsDict = pp.postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthScale)
     
