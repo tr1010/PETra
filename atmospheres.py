@@ -8,14 +8,113 @@ Created on Tue Nov 29 11:45:15 2016
 
 @author: tr1010
 """
+import sys  
+sys.path.append('NRLMSISE-00/Python-NRLMSISE-00-master')
+from nrlmsise_00_header import *
+from nrlmsise_00 import *
 import numpy as np
+#import 
 #import atmospy76 as atmospy
 # converts geometric altitude to geopotential altitude
 def me2po(E,Z):
     H = E*Z/(E + Z)
     return H
     
-# US standard Atmosphere
+def nrlmsise00(doy,year,sec,alt,g_lat,g_long,lst,f107A,f107,ap):
+    
+    output = [nrlmsise_output() for _ in range(17)]
+    Input = [nrlmsise_input() for _ in range(17)]
+    flags = nrlmsise_flags()
+    aph = ap_array() # For more detailed ap data (i.e more than daily)
+    
+    flags.switches[0] = 1
+    for i in range(1,24):
+        flags.switches[i]=1
+
+    Input.doy=doy
+    Input.year=year
+    Input.sec=sec
+    Input.alt=alt
+    Input.g_lat=g_lat
+    Input.g_long=g_long
+    Input.lst=lst
+    Input.f107A=f107A
+    Input.f107=f107
+    Input.ap=ap
+    
+    if alt > 500e3:
+        gtd7d(Input, flags, output)
+    else:
+        gtd7(Input, flags, output)
+    
+    """
+    OUTPUT VARIABLES:
+    d[0] - HE NUMBER DENSITY(CM-3)
+    d[1] - O NUMBER DENSITY(CM-3)
+    d[2] - N2 NUMBER DENSITY(CM-3)
+    d[3] - O2 NUMBER DENSITY(CM-3)
+    d[4] - AR NUMBER DENSITY(CM-3)                       
+    d[5] - TOTAL MASS DENSITY(GM/CM3) [includes d[8] in td7d]
+    d[6] - H NUMBER DENSITY(CM-3)
+    d[7] - N NUMBER DENSITY(CM-3)
+    d[8] - Anomalous oxygen NUMBER DENSITY(CM-3)
+    t[0] - EXOSPHERIC TEMPERATURE
+    t[1] - TEMPERATURE AT ALT
+    """
+    #Now process output to get required values
+    kb = 1.38064852e-23 # Boltzmann constant
+    Na = 6.022140857e23 # avogadro number
+    R0 = kb * Na # universal gas constant
+    
+    #Molecular weights of different components (kg/kmole)
+    molecular_weights = np.zeros(8)
+    molecular_weights[0] = 4.002602 #He
+    molecular_weights[1] = 15.9994 #O
+    molecular_weights[2] = 28.0134 #N2
+    molecular_weights[3] = 31.9988 #O2
+    molecular_weights[4] = 39.948 #AR
+    molecular_weights[5] = 1.00794 #H
+    molecular_weights[6] = 14.0067 #N
+    molecular_weights[7] = 15.9994 #anomalous O
+    
+    # Calculate partial pressures
+    partial_p = np.zeros(8)
+    partial_p[0] = d[0]*k*t[1] #He
+    partial_p[1] = d[1]*k*t[1] #O
+    partial_p[2] = d[2]*k*t[1] #N2
+    partial_p[3] = d[3]*k*t[1] #O2
+    partial_p[4] = d[4]*k*t[1] #AR
+    partial_p[5] = d[6]*k*t[1] #H
+    partial_p[6] = d[7]*k*t[1] #N
+    partial_p[7] = d[8]*k*t[1] #anomalous O
+
+    #Assuming perfect gas, calculate atmospheric pressure
+    pressure_mixture = np.sum(partial_p)
+    
+    temperature = t[1]    
+
+    mole_fraction = np.divide(partial_p,P)
+    
+    molecular_weight_mixture = np.sum(np.multiply(mole_fraction,molecular_weights)) #g/mol
+    
+    mass_fractions = np.multiply(mole_fraction,
+                                 np.divide(molecular_weights,molecular_weight_mixture))
+    
+    specific_gas_constants = R0/molecular_weights
+    
+    R_mixture = np.sum(np.multiply(mass_fractions,specific_gas_constants))
+    
+    number_density_mixture = np.sum(d) - d[5] 
+    
+    
+    
+#    mfp = np.float64(MolW*1e-3/(2**0.5*np.pi*sig**2*rho*Na)) # mean free path
+#    eta = np.float64(1.458e-6*T**1.5/(T + 110.4)) # dynamic viscosity via sutherland law
+#    SoS = np.float64(np.sqrt(1.4*287.085*T))
+    
+    return rho, P, T, R, mfp, eta, MolW, SoS
+    
+# US mutant Atmosphere
 def US62_76(r):
     #Some constants:
     E = 6378.137e3 #6356.0e3
