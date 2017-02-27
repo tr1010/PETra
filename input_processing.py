@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+function which processes the raw inputs
 Created on Sat Feb  4 14:04:07 2017
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 """
 import numpy as np
 import sys
-import meshtools as mesh
+import mesh_tools as mesh
 
 def process_inputs(get_inputs):
     """
     process_inputs creates the individual variables necessary to run the main
     trajectory integrator. 
-    
     
     Inputs:
         get_inputs: a python dictionary containing all of the inputs in the
@@ -47,7 +47,8 @@ def process_inputs(get_inputs):
     RawInputs = get_inputs()
     
     # Do S/C geometry    
-    BLengths = np.array([RawInputs['scWidth'],RawInputs['scHeight'],RawInputs['scDepth']])
+    BLengths = np.array([Raw        
+      Inputs['scWidth'],RawInputs['scHeight'],RawInputs['scDepth']])
     CoG_Off = np.array([0.,0.,0.]) # CoG Offset -- ignore for now
     scLengthScale = np.max(BLengths)
     
@@ -85,7 +86,7 @@ def process_inputs(get_inputs):
     # Assemble initial condition vector
     t = np.linspace(0,RawInputs['tmax'],RawInputs['ndt'])
     
-    x0 = np.array([RawInputs['Altitude'] + earth(1), RawInputs['Latitude']*d2r, 
+    x0 = np.array([RawInputs['Altitude'] + earth[1], RawInputs['Latitude']*d2r, 
                    RawInputs['Longitude']*d2r, u, v, w, e[0], e[1], e[2], e[3],
                    RawInputs['omega_x']*d2r, RawInputs['omega_y']*d2r, 
                    RawInputs['omega_z']*d2r])

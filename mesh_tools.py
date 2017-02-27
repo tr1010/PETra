@@ -4,7 +4,7 @@
 Meshes for Newtonian impact panel method
 Created on Fri Jan 20 13:11:44 2017
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 import numpy as np
 """
 import numpy as np

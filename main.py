@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Trajectories main
+PETra -- main function
+
 Created on Tue Nov 29 18:05:23 2016
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 """
 import scipy as sp
 import trajectory as tr

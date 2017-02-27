@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Newtonian impact theory panel method
+aerodynamics.py includes the functions used to calculate the aerodynamic
+moments and forces experienced by an object entering the atmosphere which are
+required for uvw_trajectory function
+
 Created on Mon Jan 23 10:18:06 2017
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 """
 import numpy as np
 import math
@@ -197,9 +200,9 @@ def cp_max_calc(Ma):
     Calculates the maximum pressure coefficient for modified Newtonian flow
     
     Inputs:
-        Ma:
+        Ma: Free stream mach number
     Outputs:
-        CpMax:
+        CpMax: Maximum pressure coefficient 
     """
     k = 1.4
     

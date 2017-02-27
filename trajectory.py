@@ -4,7 +4,7 @@
 Trajectory model based on Equations of Motion Karlgaard
 Created on Mon Nov 28 15:50:50 2016
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 
 """
 
@@ -54,10 +54,12 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS, aero_params)
     
     # Atmosphere calculation at new altitude and calculate useful aerodynamic
     # quantities
-    rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r)
+    #rho, P, T, mfp, eta, MolW, SoS = atmo.US62_76(r,earth[1])
+    #R = 287.058
+    rho, P, T, R, mfp, eta, MolW, SoS = atmo.nrlmsise00(172,0,29000,r-earth[1],phi,theta,16,150,150,4)
+    
     Vinf = np.linalg.norm(np.array([u,v,w])) #speed of s/c
     Tw = 287.0
-    R = 287.058
     Ma = Vinf/SoS
     Kn = mfp/scLS
     q_inf = 0.5*rho*Vinf**2

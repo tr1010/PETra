@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+postprocesses the raw outputs from PETra's main function
+
 Created on Mon Dec 12 15:44:46 2016
 
-@author: tr1010
+@author: tr1010 (Thomas Rees)
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,6 +52,7 @@ def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthS
     rho = np.zeros(ndt)
     P = np.zeros(ndt)
     T = np.zeros(ndt)
+    R = np.zeros(ndt)
     mfp = np.zeros(ndt)
     eta = np.zeros(ndt)
     MolW = np.zeros(ndt)
@@ -59,7 +62,8 @@ def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthS
         if sol[i,0] <= earth[1]:
             break
         else:
-            rho[i], P[i], T[i], mfp[i], eta[i], MolW[i], SoS[i]  = atmo.US62_76(sol[i,0])
+            rho[i], P[i], T[i], R[i], mfp[i], eta[i], MolW[i], SoS[i] = atmo.nrlmsise00(172,0,29000,sol[i,0]-earth[1],sol[i,1],sol[i,2],16,150,150,4)
+            #rho[i], P[i], T[i], mfp[i], eta[i], MolW[i], SoS[i]  = atmo.US62_76(sol[i,0],earth[1])
     
     Mach = np.divide(Speed,SoS)
     Kn = mfp/scLengthScale
@@ -82,7 +86,7 @@ def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthS
                       ('omega_z' , wz),
                       ('Mach' , Mach),
                       ('Knudsen' , Kn),
-                      ('Force' , Force),
+                      ('Acceleration' , Force),
                       ('DynamicPressure' , DynamicPressure),
                       ('Energy' , Energy)])
     
