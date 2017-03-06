@@ -7,7 +7,7 @@ def get_inputs():
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     
     # Atmosphere options
-    Atmosphere = 1 # 0 for mutant US62/US76 standard atmosphere, 1 for NRLMSISE-00
+    Atmosphere = 0 # 0 for mutant US62/US76 standard atmosphere, 1 for NRLMSISE-00
     
     #nrlmsise-00 options. 
     nrlmsise00_year = 0.
@@ -26,27 +26,27 @@ def get_inputs():
     scWidth = 3.4 # Width [m]
     scDepth = 4.8 # Depth [m]
     scHeight = 2.35 # Height [m]
-    scDensity = 30. # Density of spacecraft [kg/m3]
+    scDensity = 1000. # Density of spacecraft [kg/m3]
   
     # Initial Spacecraft Conditions    
-    FlightPathAngle = 0. # Positive down [deg]
+    FlightPathAngle = -0.5 # Positive down [deg]
     Heading = 102. # Measured clockwise from North [deg]
-    Speed = 7727. # Velocity
+    Speed = 7500. # Velocity
     Latitude = -79.8489  # [deg] Actually Declination. Geodetic Latitude input will be implemented soon
     Longitude = -10 # [deg]
-    Altitude = 220e3 # Initial altitude [m]
+    Altitude = 200e3 # Initial altitude [m]
     
     Pitch = 0. # Euler Angle 1 measured from Geocentric coordinate system
     Yaw = 0. # Euler Angle 2 measured from Geocentric coordinate system
     Roll = 0. # Euler Angle 3 measured from Geocentric coordinate system
     
     omega_x = 0. #3.14 # Angular velocity about the BODY x- axis [deg/s]
-    omega_y = 0. #0.314 # Angular velocity about the BODY y- axis [deg/s]
+    omega_y = 1. #0.314 # Angular velocity about the BODY y- axis [deg/s]
     omega_z = 0. #314 # Angular velocity about the BODY z- axis [deg/s]
     
     # Integration parameters
     ndt = 1001 # Number of output steps
-    tmax = 3000 # time [s]
+    tmax = 1500 # time [s]
     
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #          P O S T P R O C E S S I N G      O P T I O N S           #
@@ -82,8 +82,8 @@ def get_inputs():
                             ('nrlmsise00_sec' , nrlmsise00_sec),
                             ('nrlmsise00_lst' , nrlmsise00_lst),
                             ('nrlmsise00_f107a' ,nrlmsise00_f107a),
-                            ('nrlmsise00_f107' , nrlmsise00_f107)
-                            ('nrlmsise00_ap' , nrlmsise00_ap)
+                            ('nrlmsise00_f107' , nrlmsise00_f107),
+                            ('nrlmsise00_ap' , nrlmsise00_ap),
                             ('ContinuumMethod' , ContinuumMethod),
                             ('GeometryChoice' , GeometryChoice),
                             ('scWidth' , scWidth),

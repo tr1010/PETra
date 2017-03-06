@@ -98,7 +98,7 @@ def postprocess(t, sol, earth, mass, areas, normals, centroids, I, x0, scLengthS
     plotfn(4,t,pp_output['Altitude'], 'time', 'Altitude', 's', 'km')
     plotfn(5,t,pp_output['Mach'], 'time', 'Mach Number', 's', '-')
     plotfn(6,t,pp_output['Knudsen'], 'time', 'Knudsen number', 's', '-')
-    plotfn(7,t[0:ndt-1],pp_output['Force'], 'time', 'Force', 's', 'g')
+    plotfn(7,t[0:ndt-1],pp_output['Acceleration'], 'time', 'Force', 's', 'g')
     plotfn(8,t,pp_output['DynamicPressure']*1e-3, 'time', 'Dynamic Pressure', 's', 'kPa')
     plotfn(9,t,pp_output['Energy']*1e-9, 'time', 'Energy', 's', 'GJ')
     

@@ -64,7 +64,7 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS, aero_params)
     Kn = mfp/scLS
     q_inf = 0.5*rho*Vinf**2
     
-    if r-earth[1] <= 100e3 and Vinf/SoS < 3:
+    if r-earth[1] <= 80e3 and Vinf/SoS < 3:
         # Check if Mach number falls below 5 (Newtonian theory fails) or
         # S/C hits ground
         # There is a better way of doing this which I should implement
@@ -106,13 +106,14 @@ def traj_uvw(x, t, earth, mass, areas, normals, centroids, I, scLS, aero_params)
         edotrot = np.subtract(angvel,(1./r)*np.dot(Gcb,np.array([v, -u, -v*tphi])))
         edot = 0.5*np.dot(emat,edotrot)
         
+        J = 1.5*J2*earth[1]**2
         # time derivative of state variables
         dxdt = [-w,
                 u/r,
                 v/(r*cphi) - ome,
-                AeroF_GC[0] + (u*w-v**2*tphi)/r - (3*mu*J2/(2*r**4))*np.sin(2*phi),
+                AeroF_GC[0] + (u*w-v**2*tphi)/r - (mu*J/(r**4))*np.sin(2*phi),
                 AeroF_GC[1] + (u*v*tphi + v*w)/r,
-                AeroF_GC[2] - (u**2 + v**2)/r + mu/r**2 - (3*mu*J2/(2*r**4))*(2-3*cphi**2),
+                AeroF_GC[2] - (u**2 + v**2)/r + mu/r**2 - (mu*J/(r**4))*(2-3*cphi**2),
                 edot[0],
                 edot[1],            
                 edot[2],

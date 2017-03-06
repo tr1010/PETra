@@ -1,0 +1,15 @@
+The Python Entry TRAjectory tool (PETra) is a tool for calculating the trajectories
+of objects undergoing an uncontrolled (ballistic) atmospheric re-entry on Earth.
+
+PETra is written in Python v3.5.2 and makes extensive use of the NumPy, SciPy, and 
+Matplotlib packages and libraries.
+
+The equations of motion are integrated with SciPy's odeint function, which actually
+calls the LSODA integrator in the odepack Fortran library.
+
+To use, create an input file named 'inputs.py' which contains a Python function called
+get_inputs(). For a complete list of possible inputs, see the user manual. To run, 
+run the main.py file.
+
+PETra uses Joshua Milas' Python port of the NRLMSISE-00 atmosphere model, released on
+an MIT license, in order to calculate atmospheric quantities.

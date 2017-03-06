@@ -47,8 +47,7 @@ def process_inputs(get_inputs):
     RawInputs = get_inputs()
     
     # Do S/C geometry    
-    BLengths = np.array([Raw        
-      Inputs['scWidth'],RawInputs['scHeight'],RawInputs['scDepth']])
+    BLengths = np.array([RawInputs['scWidth'],RawInputs['scHeight'],RawInputs['scDepth']])
     CoG_Off = np.array([0.,0.,0.]) # CoG Offset -- ignore for now
     scLengthScale = np.max(BLengths)
     
