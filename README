@@ -7,8 +7,7 @@ Matplotlib packages and libraries.
 The equations of motion are integrated with SciPy's odeint function, which actually
 calls the LSODA integrator in the odepack Fortran library.
 
-To use, create an input file named 'inputs.py' which contains a Python function called
-get_inputs(). For a complete list of possible inputs, see the user manual. To run, 
+To use, create an input file named 'inputs.py' (use the template provided). For a complete list of possible inputs, see the user manual. To run, 
 run the main.py file.
 
 PETra uses Joshua Milas' Python port of the NRLMSISE-00 atmosphere model, released on
